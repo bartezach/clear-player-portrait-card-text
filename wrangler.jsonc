@@ -12,9 +12,27 @@
 	},
 	"triggers": {
 		"crons": [
-			"* * * * *"
+			"0 2 * * *"
 		]
+	},
+
+	"env": {
+		"test": {
+			"vars": {
+				"MPX_ENV": "test",
+				"MPX_TEST_USERNAME": "service/player-test-service-account",
+				"DRY_RUN": "true"
+			}
+		},
+		"prod": {
+			"vars": {
+				"MPX_ENV": "prod",
+				"MPX_PROD_USERNAME": "service/player-prd-service-account",
+				"DRY_RUN": "false"
+			}
+		}
 	}
+}
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
@@ -43,4 +61,3 @@
 	 * https://developers.cloudflare.com/workers/wrangler/configuration/#service-bindings
 	 */
 	// "services": [  {   "binding": "MY_SERVICE",   "service": "my-service"  } ]
-}
