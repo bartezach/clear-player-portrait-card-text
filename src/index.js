@@ -47,34 +47,61 @@ async function run(env) {
 
 
 async function queryExpiredMedia(token, account, cutoff){
-	const url = new URL(
-		"https://data.entertainment.tv.theplatform.eu/entertainment/data/Program"
-	);
+	const BASE_URL =
+		"https://data.entertainment.tv.theplatform.eu/entertainment/data/Program";
+	
+	const pageSize = 100;
+	let startIndex = 1;
+	let allItems = [];
 
-	url.searchParams.set("schema", "2.0");
-  	url.searchParams.set("account", account);
-	url.searchParams.set("token", token)
-  	url.searchParams.set(
-    	"byCustomValue",
-    	`{rte$portraitCardTextUpdated}{~${cutoff}}`
-  	);
-	url.searchParams.set("form", "json");
-	console.log("Querying MPX:", url.href);
+	while (true) {
+		const url = new URL(BASE_URL);
 
-	// console.log(url);
-	const res = await fetch(url, {
-		headers: { Accept: "application/json" }
-	});
+		url.searchParams.set("schema", "2.0");
+  		url.searchParams.set("account", account);
+		url.searchParams.set("token", token)
+  		url.searchParams.set(
+    		"byCustomValue",
+    		`{rte$portraitCardTextUpdated}{~${cutoff}}`
+  		);
+		url.searchParams.set("form", "json");
+		url.searchParams.set("count", pageSize);
+		url.searchParams.set("startIndex", startIndex);
+		
+		console.log(`Querying MPX: startIndex=${startIndex}`);
 
-	const text = await res.text();
+		console.log(url);
+		const res = await fetch(url, {
+			headers: { Accept: "application/json" }
+		});
 
-	try {
-		const data = JSON.parse(text);
-		return data.entries ?? [];
-	} catch (err) {
-		console.error("Failed to parse MPX JSON. Response was:\n", text);
-		throw new Error("MPX query failed: response not JSON");
+		const text = await res.text();
+		let data;
+
+		try {
+			data = JSON.parse(text);
+		} catch (err) {
+			console.error("Failed to parse MPX JSON. Response was:\n", text);
+			throw new Error("MPX query failed: response not JSON");
+		}
+
+		const entries = data.entries ?? [];
+		allItems.push(...entries);
+
+		console.log(`Fetched ${entries.length} items (total ${allItems.length})`);
+
+		if (allItems.length > 5000) {
+			throw new Error("Process stopped: Too many items returned");
+		}
+
+		if (entries.length < pageSize) {
+			break;
+		}
+
+		startIndex += pageSize;
 	}
+	
+	return allItems
 }
 
 async function clearPortraitCardText(item, token, account, env) {
