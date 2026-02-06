@@ -30,7 +30,7 @@ async function run(env) {
 	console.log("Got token");
 	const account = env.MPX_ENV === "prod" ? "RTE Prod - Prod" : "RTE Test - Integration";
 
-	const items = await queryExpiredMedia(token, account, cutoff);
+	const items = await queryExpiredPortraitCardText(token, account, cutoff);
 
 	console.log(`Found ${items.length} items to process`);
 
@@ -46,7 +46,7 @@ async function run(env) {
 }
 
 
-async function queryExpiredMedia(token, account, cutoff){
+async function queryExpiredPortraitCardText(token, account, cutoff){
 	const BASE_URL =
 		"https://data.entertainment.tv.theplatform.eu/entertainment/data/Program";
 	
@@ -118,19 +118,19 @@ async function clearPortraitCardText(item, token, account, env) {
 
 	if (item.locked === true) {
 		console.log(`Unlocking ${item.id}`);
-		await updateMedia(item.id, token, account, fieldsToClear, false);
+		await updateProgram(item.id, token, account, fieldsToClear, false);
 
 		console.log(`Re-locking ${item.id}`);
-		await updateMedia(item.id, token, account, null, true);
+		await updateProgram(item.id, token, account, null, true);
 	} else {
 		console.log(`Clearing portrait card text for ${item.id}`);
-		await updateMedia(item.id, token, account, fieldsToClear);
+		await updateProgram(item.id, token, account, fieldsToClear);
 	}
 }
 
-async function updateMedia(id, token, account, fields, lock) {
+async function updateProgram(id, token, account, fields, lock) {
 	const url = new URL(
-		`https://data.feed.theplatform.eu/feed/data/Media/${id}`
+		`https://data.entertainment.tv.theplatform.eu/entertainment/data/Program/${id}`
 	);
 
 	url.searchParams.set("schema", "2.0");
